@@ -39,48 +39,55 @@ public class SchemaWriterConfig {
     @Autowired
     private ApplicationArguments applicationArguments;
 
-    private Map<String, Object> loadApplicationConfig() throws IOException {
+    private String applicationConfigPath;
 
+    private Map<String, Object> loadApplicationConfig() throws IOException {
         String filePath;
 
         if (!applicationArguments.getNonOptionArgs().isEmpty()) {
-   filePath = applicationArguments.getNonOptionArgs().getFirst();
-           } else {
-               throw new RuntimeException("No argument provided");
-           }
+            filePath = applicationArguments.getNonOptionArgs().getFirst();
+        } else {
+            throw new RuntimeException("No argument provided");
+        }
 
-           File configFile = new File(filePath);
-           String applicationLocalPath;
+        File configFile = new File(filePath);
 
-           // Check if the provided path is directly to a file
-           if (configFile.isFile()) {
-               applicationLocalPath = filePath;
-           } else {
-               // Treat the path as a directory and append the path to application-local.yml
-               applicationLocalPath = filePath + File.separator + "service" + File.separator + "src" + File.separator + "main" + File.separator + "resources" + File.separator + "application-local.yml";
-               configFile = new File(applicationLocalPath);
-           }
+        // Check if the provided path is directly to a file
+        if (configFile.isFile()) {
+            applicationConfigPath = filePath;
+        } else {
+            try {
+                java.nio.file.Path startPath = java.nio.file.Paths.get(filePath);
+                java.util.Optional<java.nio.file.Path> configFilePath = java.nio.file.Files.find(
+                        startPath,
+                        30, // Search depth limit
+                        (path, attr) -> path.getFileName().toString().equals("application-local.yml")
+                                && !path.toString().contains("/target/") && !path.toString().contains("/test/")
+                ).findFirst();
+                if (configFilePath.isPresent()) {
+                    applicationConfigPath = configFilePath.get().toString();
+                    configFile = configFilePath.get().toFile();
+                    System.out.println("Found configuration file at: " + applicationConfigPath);
+                } else {
+                    throw new IOException("Could not find application-local.yml in " + filePath);
+                }
+            } catch (IOException e) {
+                throw new RuntimeException("Error searching for application-local.yml: " + e.getMessage(), e);
+            }
+        }
 
-           ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-           try {
-               return mapper.readValue(configFile, new TypeReference<>() {
-               });
-           } catch (IOException e) {
-               System.out.println();
-               try (java.util.Scanner scanner = new java.util.Scanner(System.in)) {
-                   System.out.println("\u001B[31m" + "Could not load YAML configuration from: " + applicationLocalPath + "\n" +"Enter the path to your application-local file (it should be an absolute path):" + "\u001B[31m");
-                   String absPath = scanner.nextLine().trim();
-                   File newConfigFile = new File(absPath);
+        ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+        try {
+            return mapper.readValue(configFile, new TypeReference<>() {});
+        } catch (IOException e) {
+            throw new RuntimeException("Error reading configuration file: " + e.getMessage(), e);
+        }
+    }
 
-                   ObjectMapper newMapper = new ObjectMapper(new YAMLFactory());
-                   return newMapper.readValue(newConfigFile, new TypeReference<>() {
-                   });
-               } catch (IOException e1) {
-                   System.err.println("\u001B[31m" + "Failed to load configuration from the provided path: " + e1.getMessage() + "\u001B[0m");
-                   throw new RuntimeException("Failed to load configuration file", e1);
-               }
-           }
-       }
+    @Bean
+    public String applicationConfigPath() {
+        return applicationConfigPath;
+    }
 
     @Bean
     public DataSource dataSource() throws IOException {
@@ -122,18 +129,18 @@ public class SchemaWriterConfig {
                 }
 
                 // Set schemaGenProperties list if available
-                if (kafkaSchemaGenConfig.containsKey("schemaGenProperties")) {
+                if (kafkaSchemaGenConfig.containsKey("schema-gen-properties")) {
                     @SuppressWarnings("unchecked")
-                    List<Map<String, Object>> schemaGenPropertiesList = (List<Map<String, Object>>) kafkaSchemaGenConfig.get("schemaGenProperties");
+                    List<Map<String, Object>> schemaGenPropertiesList = (List<Map<String, Object>>) kafkaSchemaGenConfig.get("schema-gen-properties");
                     List<SchemaGenProperties> schemaGenPropertiesObjects = new ArrayList<>();
 
                     for (Map<String, Object> propMap : schemaGenPropertiesList) {
                         SchemaGenProperties schemaGenProps = new SchemaGenProperties();
-                        if (propMap.containsKey("entityShortName")) schemaGenProps.setEntityShortName((String) propMap.get("entityShortName"));
-                        if (propMap.containsKey("topicName")) schemaGenProps.setTopicName((String) propMap.get("topicName"));
-                        if (propMap.containsKey("viewName")) schemaGenProps.setViewName((String) propMap.get("viewName"));
-                        if (propMap.containsKey("viewKeyName")) schemaGenProps.setViewKeyName((String) propMap.get("viewKeyName"));
-                        if (propMap.containsKey("nameSpace")) schemaGenProps.setNameSpace((String) propMap.get("nameSpace"));
+                        if (propMap.containsKey("entity-short-name")) schemaGenProps.setEntityShortName((String) propMap.get("entity-short-name"));
+                        if (propMap.containsKey("topic-name")) schemaGenProps.setTopicName((String) propMap.get("topic-name"));
+                        if (propMap.containsKey("view-key-name")) schemaGenProps.setViewName((String) propMap.get("view-key-name"));
+                        if (propMap.containsKey("view-name")) schemaGenProps.setViewKeyName((String) propMap.get("view-name"));
+                        if (propMap.containsKey("name-space")) schemaGenProps.setNameSpace((String) propMap.get("name-space"));
                         schemaGenPropertiesObjects.add(schemaGenProps);
                     }
                     properties.setSchemaGenProperties(schemaGenPropertiesObjects);

@@ -29,6 +29,9 @@ public class GenAvroSchemaDbApplication implements CommandLineRunner {
     @Autowired
     private SchemaGenerationService schemaGenerationService;
 
+    @Autowired
+    private String applicationConfigPath;
+
     public static void main(String[] args) {
         // Configure Spring Boot to minimize logging output
         SpringApplication app = new SpringApplication(GenAvroSchemaDbApplication.class);
@@ -62,8 +65,8 @@ public class GenAvroSchemaDbApplication implements CommandLineRunner {
         if( args.length == 0) {
             throw new RuntimeException("No configuration file path provided as an argument.");
         }
-        File configFile = new File(args[0]);
-        String dirPath = configFile.getParent();
+        File resources = new File(applicationConfigPath);
+        String dirPath = resources.getParent();
 
         for (SchemaGenProperties schemaGenProperty : schemaGenProperties) {
             Schema s = schemaGenerationService.buildSchema(schemaGenProperty.getTopicName(), schemaGenProperty.getViewName(), schemaGenProperty.getEntityShortName(), schemaGenProperty.getNameSpace());
