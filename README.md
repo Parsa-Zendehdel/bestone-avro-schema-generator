@@ -18,7 +18,7 @@ This module generates Avro schemas directly from Java POJO classes using reflect
 - Handles logical types such as timestamps and UUIDs.
 
 ### Getting Started
-Refer to the `HELP.md` file in the module directory for detailed setup instructions.
+Refer to the `README.md` file in the module directory for detailed setup instructions.
 
 ### Usage
 1. Add your POJO classes to the module.
@@ -37,7 +37,7 @@ This module generates Avro schemas from database views, bridging the gap between
 - Supports Kafka Connect logical types.
 
 ### Getting Started
-Refer to the `HELP.md` file in the module directory for detailed setup instructions.
+Refer to the `README.md` file in the module directory for detailed setup instructions.
 
 ### Usage
 1. Configure the `application-local.yml` file with database connection details.
