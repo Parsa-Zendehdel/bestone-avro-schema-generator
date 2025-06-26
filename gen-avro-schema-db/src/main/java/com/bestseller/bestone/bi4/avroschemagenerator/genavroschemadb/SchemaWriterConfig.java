@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.confluent.kafka.schemaregistry.client.CachedSchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
+import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
@@ -41,7 +42,10 @@ public class SchemaWriterConfig {
 
     private String applicationConfigPath;
 
-    private Map<String, Object> loadApplicationConfig() throws IOException {
+    private Map<String, Object> configProperties;
+
+    @PostConstruct
+    public void loadApplicationConfig() {
         String filePath;
 
         if (!applicationArguments.getNonOptionArgs().isEmpty()) {
@@ -78,7 +82,7 @@ public class SchemaWriterConfig {
 
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
         try {
-            return mapper.readValue(configFile, new TypeReference<>() {});
+            configProperties = mapper.readValue(configFile, new TypeReference<>() {});
         } catch (IOException e) {
             throw new RuntimeException("Error reading configuration file: " + e.getMessage(), e);
         }
@@ -90,11 +94,10 @@ public class SchemaWriterConfig {
     }
 
     @Bean
-    public DataSource dataSource() throws IOException {
-        Map<String, Object> config = loadApplicationConfig();
+    public DataSource dataSource() {
 
         @SuppressWarnings("unchecked")
-        Map<String, Object> springConfig = (Map<String, Object>) config.get("spring");
+        Map<String, Object> springConfig = (Map<String, Object>) configProperties.get("spring");
         @SuppressWarnings("unchecked")
         Map<String, Object> datasourceConfig = (Map<String, Object>) springConfig.get("datasource");
 
@@ -110,15 +113,46 @@ public class SchemaWriterConfig {
     public KafkaSchemaGenProperties kafkaSchemaGenProperties(View view) {
         KafkaSchemaGenProperties properties = new KafkaSchemaGenProperties();
 
-        try {
+        boolean propertiesFound = false;
 
-            Map<String, Object> config = loadApplicationConfig();
+        if (configProperties.containsKey("kafka-schema-gen")) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> kafkaSchemaGenConfig = (Map<String, Object>) configProperties.get("kafka-schema-gen");
 
-            boolean propertiesFound = false;
+            // Set boolean properties
+            if (kafkaSchemaGenConfig.containsKey("createSchema")) {
+                properties.setCreateSchema((Boolean) kafkaSchemaGenConfig.get("createSchema"));
+            }
+            if (kafkaSchemaGenConfig.containsKey("createTopic")) {
+                properties.setCreateTopic((Boolean) kafkaSchemaGenConfig.get("createTopic"));
+            }
 
-            if (config.containsKey("kafka-schema-gen")) {
+            // Set schemaGenProperties list if available
+            if (kafkaSchemaGenConfig.containsKey("schema-gen-properties")) {
                 @SuppressWarnings("unchecked")
-                Map<String, Object> kafkaSchemaGenConfig = (Map<String, Object>) config.get("kafka-schema-gen");
+                List<Map<String, Object>> schemaGenPropertiesList = (List<Map<String, Object>>) kafkaSchemaGenConfig.get("schema-gen-properties");
+                List<SchemaGenProperties> schemaGenPropertiesObjects = new ArrayList<>();
+
+                for (Map<String, Object> propMap : schemaGenPropertiesList) {
+                    SchemaGenProperties schemaGenProps = new SchemaGenProperties();
+                    if (propMap.containsKey("entity-short-name")) schemaGenProps.setEntityShortName((String) propMap.get("entity-short-name"));
+                    if (propMap.containsKey("topic-name")) schemaGenProps.setTopicName((String) propMap.get("topic-name"));
+                    if (propMap.containsKey("view-key-name")) schemaGenProps.setViewName((String) propMap.get("view-key-name"));
+                    if (propMap.containsKey("view-name")) schemaGenProps.setViewKeyName((String) propMap.get("view-name"));
+                    if (propMap.containsKey("name-space")) schemaGenProps.setNameSpace((String) propMap.get("name-space"));
+                    schemaGenPropertiesObjects.add(schemaGenProps);
+                }
+                properties.setSchemaGenProperties(schemaGenPropertiesObjects);
+            }
+
+            propertiesFound = true;
+        } else if (configProperties.containsKey("spring")) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> springConfig = (Map<String, Object>) configProperties.get("spring");
+
+            if (springConfig.containsKey("kafka-schema-gen")) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> kafkaSchemaGenConfig = (Map<String, Object>) springConfig.get("kafka-schema-gen");
 
                 // Set boolean properties
                 if (kafkaSchemaGenConfig.containsKey("createSchema")) {
@@ -129,68 +163,30 @@ public class SchemaWriterConfig {
                 }
 
                 // Set schemaGenProperties list if available
-                if (kafkaSchemaGenConfig.containsKey("schema-gen-properties")) {
+                if (kafkaSchemaGenConfig.containsKey("schemaGenProperties")) {
                     @SuppressWarnings("unchecked")
-                    List<Map<String, Object>> schemaGenPropertiesList = (List<Map<String, Object>>) kafkaSchemaGenConfig.get("schema-gen-properties");
+                    List<Map<String, Object>> schemaGenPropertiesList = (List<Map<String, Object>>) kafkaSchemaGenConfig.get("schemaGenProperties");
                     List<SchemaGenProperties> schemaGenPropertiesObjects = new ArrayList<>();
 
                     for (Map<String, Object> propMap : schemaGenPropertiesList) {
                         SchemaGenProperties schemaGenProps = new SchemaGenProperties();
-                        if (propMap.containsKey("entity-short-name")) schemaGenProps.setEntityShortName((String) propMap.get("entity-short-name"));
-                        if (propMap.containsKey("topic-name")) schemaGenProps.setTopicName((String) propMap.get("topic-name"));
-                        if (propMap.containsKey("view-key-name")) schemaGenProps.setViewName((String) propMap.get("view-key-name"));
-                        if (propMap.containsKey("view-name")) schemaGenProps.setViewKeyName((String) propMap.get("view-name"));
-                        if (propMap.containsKey("name-space")) schemaGenProps.setNameSpace((String) propMap.get("name-space"));
+                        if (propMap.containsKey("entityShortName")) schemaGenProps.setEntityShortName((String) propMap.get("entityShortName"));
+                        if (propMap.containsKey("topicName")) schemaGenProps.setTopicName((String) propMap.get("topicName"));
+                        if (propMap.containsKey("viewName")) schemaGenProps.setViewName((String) propMap.get("viewName"));
+                        if (propMap.containsKey("viewKeyName")) schemaGenProps.setViewKeyName((String) propMap.get("viewKeyName"));
+                        if (propMap.containsKey("nameSpace")) schemaGenProps.setNameSpace((String) propMap.get("nameSpace"));
                         schemaGenPropertiesObjects.add(schemaGenProps);
                     }
                     properties.setSchemaGenProperties(schemaGenPropertiesObjects);
                 }
 
                 propertiesFound = true;
-            } else if (config.containsKey("spring")) {
-                @SuppressWarnings("unchecked")
-                Map<String, Object> springConfig = (Map<String, Object>) config.get("spring");
-
-                if (springConfig.containsKey("kafka-schema-gen")) {
-                    @SuppressWarnings("unchecked")
-                    Map<String, Object> kafkaSchemaGenConfig = (Map<String, Object>) springConfig.get("kafka-schema-gen");
-
-                    // Set boolean properties
-                    if (kafkaSchemaGenConfig.containsKey("createSchema")) {
-                        properties.setCreateSchema((Boolean) kafkaSchemaGenConfig.get("createSchema"));
-                    }
-                    if (kafkaSchemaGenConfig.containsKey("createTopic")) {
-                        properties.setCreateTopic((Boolean) kafkaSchemaGenConfig.get("createTopic"));
-                    }
-
-                    // Set schemaGenProperties list if available
-                    if (kafkaSchemaGenConfig.containsKey("schemaGenProperties")) {
-                        @SuppressWarnings("unchecked")
-                        List<Map<String, Object>> schemaGenPropertiesList = (List<Map<String, Object>>) kafkaSchemaGenConfig.get("schemaGenProperties");
-                        List<SchemaGenProperties> schemaGenPropertiesObjects = new ArrayList<>();
-
-                        for (Map<String, Object> propMap : schemaGenPropertiesList) {
-                            SchemaGenProperties schemaGenProps = new SchemaGenProperties();
-                            if (propMap.containsKey("entityShortName")) schemaGenProps.setEntityShortName((String) propMap.get("entityShortName"));
-                            if (propMap.containsKey("topicName")) schemaGenProps.setTopicName((String) propMap.get("topicName"));
-                            if (propMap.containsKey("viewName")) schemaGenProps.setViewName((String) propMap.get("viewName"));
-                            if (propMap.containsKey("viewKeyName")) schemaGenProps.setViewKeyName((String) propMap.get("viewKeyName"));
-                            if (propMap.containsKey("nameSpace")) schemaGenProps.setNameSpace((String) propMap.get("nameSpace"));
-                            schemaGenPropertiesObjects.add(schemaGenProps);
-                        }
-                        properties.setSchemaGenProperties(schemaGenPropertiesObjects);
-                    }
-
-                    propertiesFound = true;
-                }
             }
+        }
 
-            if (propertiesFound) {
-                System.out.println("KafkaSchemaGenProperties loaded from configuration file");
-                return properties;
-            }
-        } catch (IOException e) {
-            System.out.println("Could not load configuration from file, switching to manual input");
+        if (propertiesFound) {
+            System.out.println("KafkaSchemaGenProperties loaded from configuration file");
+            return properties;
         }
 
         // If automatic configuration failed, fall back to manual input
@@ -231,10 +227,8 @@ public class SchemaWriterConfig {
 
     @Bean
     public SchemaRegistryClient schemaRegistryClient() throws IOException {
-        Map<String, Object> config = loadApplicationConfig();
-
         @SuppressWarnings("unchecked")
-        Map<String, Object> springConfig = (Map<String, Object>) config.get("spring");
+        Map<String, Object> springConfig = (Map<String, Object>) configProperties.get("spring");
         @SuppressWarnings("unchecked")
         Map<String, Object> kafkaConfig = (Map<String, Object>) springConfig.get("kafka");
         @SuppressWarnings("unchecked")
