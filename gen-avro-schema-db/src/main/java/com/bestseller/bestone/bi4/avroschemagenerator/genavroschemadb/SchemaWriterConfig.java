@@ -245,7 +245,7 @@ public class SchemaWriterConfig {
     public LocalContainerEntityManagerFactoryBean entityManagerFactory(DataSource dataSource) {
         LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
         em.setDataSource(dataSource);
-        em.setPackagesToScan("com.example.demo", "com.bestseller.bestone.bi4");
+        em.setPackagesToScan("com.bestseller.bestone.bi4","com.bestseller.bestone.bi4.avroschemagenerator.genavroschemadb");
 
         HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
         vendorAdapter.setDatabase(Database.POSTGRESQL);

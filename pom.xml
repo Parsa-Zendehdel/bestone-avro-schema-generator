@@ -19,6 +19,7 @@
 
             <modules>
                 <module>gen-avro-schema-db</module>
+                <module>gen-avro-schema-cmd</module>
                 <!-- Add more modules as needed -->
             </modules>
 
