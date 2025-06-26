@@ -1,79 +1,67 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.3</version>
-        <relativePath/> <!-- lookup parent from repository -->
-    </parent>
-    <groupId>com.bestseller.bestone.bi4.avroschemagenerator</groupId>
-    <artifactId>bestone-avro-schema-generator</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <name>bestone-avro-schema-generator</name>
-    <description>bestone-avro-schema-generator</description>
-    <url/>
-    <licenses>
-        <license/>
-    </licenses>
-    <developers>
-        <developer/>
-    </developers>
-    <scm>
-        <connection/>
-        <developerConnection/>
-        <tag/>
-        <url/>
-    </scm>
-    <properties>
-        <java.version>21</java.version>
-    </properties>
-    <dependencies>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <annotationProcessorPaths>
-                        <path>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                        </path>
-                    </annotationProcessorPaths>
-                </configuration>
-            </plugin>
-            <plugin>
+        <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+            <modelVersion>4.0.0</modelVersion>
+            <parent>
                 <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <excludes>
-                        <exclude>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                        </exclude>
-                    </excludes>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+                <artifactId>spring-boot-starter-parent</artifactId>
+                <version>3.5.3</version>
+                <relativePath/> <!-- lookup parent from repository -->
+            </parent>
 
-</project>
+            <groupId>com.bestseller.bestone.bi4.avroschemagenerator</groupId>
+            <artifactId>bestone-avro-schema-generator</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <packaging>pom</packaging>
+
+            <name>bestone-avro-schema-generator</name>
+            <description>Parent project for Avro schema generators</description>
+
+            <modules>
+                <module>gen-avro-schema-db</module>
+                <!-- Add more modules as needed -->
+            </modules>
+
+            <properties>
+                <java.version>21</java.version>
+                <lombok.version>1.18.30</lombok.version>
+                <avro.version>1.11.3</avro.version>
+                <maven-shade-plugin.version>3.5.1</maven-shade-plugin.version>
+            </properties>
+
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.avro</groupId>
+                        <artifactId>avro</artifactId>
+                        <version>${avro.version}</version>
+                    </dependency>
+                    <!-- Other common dependencies can be defined here -->
+                </dependencies>
+            </dependencyManagement>
+
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-shade-plugin</artifactId>
+                            <version>${maven-shade-plugin.version}</version>
+                        </plugin>
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-compiler-plugin</artifactId>
+                            <configuration>
+                                <annotationProcessorPaths>
+                                    <path>
+                                        <groupId>org.projectlombok</groupId>
+                                        <artifactId>lombok</artifactId>
+                                        <version>${lombok.version}</version>
+                                    </path>
+                                </annotationProcessorPaths>
+                            </configuration>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+            </build>
+        </project>

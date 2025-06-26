@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.bestseller.bestone.bi4.avroschemagenerator</groupId>
+        <artifactId>bestone-avro-schema-generator</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>gen-avro-schema-db</artifactId>
+    <name>gen-avro-schema-db</name>
+    <description>Avro Schema Generator for DB</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <artifactId>kafka-schema-utils</artifactId>
+            <groupId>com.bestseller.bestone.bi4.sales.standardutils</groupId>
+            <version>3.2.2.134</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-yaml</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.avro</groupId>
+            <artifactId>avro</artifactId>
+        </dependency>
+        <!-- Other dependencies -->
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.5.1</version>
+                <executions>
+                    <execution>
+                        <id>shade-jar-with-dependencies</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>com.bestseller.bestone.bi4.avroschemagenerator.genavroschemadb.GenAvroSchemaDbApplication</mainClass>
+                                </transformer>
+                                <!-- You may have other transformers here, for example for spring.factories -->
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                    <resource>META-INF/spring.factories</resource>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
