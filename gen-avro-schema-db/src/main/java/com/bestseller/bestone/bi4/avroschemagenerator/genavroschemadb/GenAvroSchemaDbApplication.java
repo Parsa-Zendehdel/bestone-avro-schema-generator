@@ -9,6 +9,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.env.Environment;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -50,8 +51,6 @@ public class GenAvroSchemaDbApplication implements CommandLineRunner {
 
         // Set properties to reduce logging
         Map<String, Object> properties = new HashMap<>();
-        properties.put("logging.level.root", "OFF");
-        properties.put("logging.level.org.springframework", "OFF");
         properties.put("spring.main.log-startup-info", "false");
 
 
@@ -70,8 +69,15 @@ public class GenAvroSchemaDbApplication implements CommandLineRunner {
 
         for (SchemaGenProperties schemaGenProperty : schemaGenProperties) {
             Schema s = schemaGenerationService.buildSchema(schemaGenProperty.getTopicName(), schemaGenProperty.getViewName(), schemaGenProperty.getEntityShortName(), schemaGenProperty.getNameSpace());
+            Map<String, String> metaDataForHeader = getMetaDataForHeader();
+            if(!metaDataForHeader.isEmpty()) {
+                s.addProp("metadata", metaDataForHeader);
+            }
             String filename = schemaGenProperty.getEntityShortName() + "_" + schemaGenProperty.getTopicName() + ".avsc";
             File schemaFile = new File(dirPath, filename);
+            if (schemaGenerationService.isSchemaClientAvailable()){
+                schemaGenerationService.registerSchema(schemaGenProperty.getTopicName(),s);
+            }
 
             try (FileWriter writer = new FileWriter(schemaFile)) {
                 writer.write(s.toString(true)); // Pretty-print the schema
@@ -80,9 +86,27 @@ public class GenAvroSchemaDbApplication implements CommandLineRunner {
                 throw new RuntimeException(e);
             }
         }
+    }
 
-        int exitCode = SpringApplication.exit(applicationContext, () -> 0);
-        System.exit(exitCode);
+    private Map<String, String> getMetaDataForHeader() {
+        Map<String, String> metadata = new HashMap<>();
+        Environment environment = applicationContext.getEnvironment();
 
+        String dataOwner = environment.getProperty("schema.metadata.dataOwner");
+        if (dataOwner != null) {
+            metadata.put("dataOwner", dataOwner);
+        }
+
+        String processOwner = environment.getProperty("schema.metadata.processOwner");
+        if (processOwner != null) {
+            metadata.put("processOwner", processOwner);
+        }
+
+        String technicalOwner = environment.getProperty("schema.metadata.technicalOwner");
+        if (technicalOwner != null) {
+            metadata.put("technicalOwner", technicalOwner);
+        }
+
+        return metadata;
     }
 }
