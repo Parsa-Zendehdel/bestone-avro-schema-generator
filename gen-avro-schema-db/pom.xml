@@ -28,7 +28,7 @@
         <dependency>
             <artifactId>kafka-schema-utils</artifactId>
             <groupId>com.bestseller.bestone.bi4.sales.standardutils</groupId>
-            <version>LATEST</version>
+            <version>3.2.2.134</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>

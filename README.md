@@ -40,7 +40,7 @@ This module generates Avro schemas from database views, bridging the gap between
 Refer to the `README.md` file in the module directory for detailed setup instructions.
 
 ### Usage
-1. Configure the `application-local.yml` file with database connection details.
+1. Make sure that the project you are running this Tool on has an `application-local.yml` file with proper connection to a Postgres database.
 2. Run the tool to generate `.avsc` files based on the database views.
 
 ---
