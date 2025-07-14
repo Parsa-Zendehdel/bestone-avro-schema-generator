@@ -33,8 +33,7 @@ The Avro Schema Generator is a utility tool that automatically converts Java cla
     - **Program**: `java`
     - **Arguments**:
       ```
-      -jar -jar /Users/<yourUser>/.m2/repository/com/bestseller/bestone/bi4/avroschemagenerator/gen-avro-schema-cmd/0.0.1-SNAPSHOT/gen-avro-schema-cmd-0.0.1-SNAPSHOT.jar  $FileClass$ "$FileDir$/$FileNameWithoutAllExtensions$.avsc"
-      ```
+      -cp "$ModuleFileDir$/target/classes:/Users/<your.user>/.m2/repository/com/bestseller/bestone/bi4/avroschemagenerator/gen-avro-schema-cmd/0.0.1-SNAPSHOT/gen-avro-schema-cmd-0.0.1-SNAPSHOT.jar" com.bestseller.bestone.bi4.avroschemagenerator.genavroschemacmd.GenAvroSchemaCmdApplication $FileClass$ "$FileDir$/$FileNameWithoutAllExtensions$.avsc"      ```
       *Note: You may need to replace forward slashes with backslashes on Windows*
     - **Working directory**: `$ProjectFileDir$`
 

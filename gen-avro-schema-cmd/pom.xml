@@ -54,17 +54,32 @@
         <dependency>
             <groupId>com.bestseller.bestone.bi4.sales.standardutils</groupId>
             <artifactId>kafka-utils</artifactId>
-            <version>3.2.2.149</version>
+            <version>LATEST</version>
+        </dependency>
+        <dependency>
+            <groupId>com.bestseller.bestone.bi4.sales.standardutils</groupId>
+            <artifactId>kafka-consumer-utils</artifactId>
+            <version>LATEST</version>
+        </dependency>
+        <dependency>
+            <groupId>com.bestseller.bestone.bi4.sales.standardutils</groupId>
+            <artifactId>kafka-producer-utils</artifactId>
+            <version>LATEST</version>
+        </dependency>
+        <dependency>
+            <groupId>com.bestseller.bestone.bi4.hermes</groupId>
+            <artifactId>hermes-spring-boot-starter</artifactId>
+            <version>LATEST</version>
         </dependency>
         <dependency>
             <groupId>com.bestseller.bestone.bi4.system.infra</groupId>
             <artifactId>mqjavacontracts</artifactId>
-            <version>0.0.329</version>
+            <version>LATEST</version>
         </dependency>
         <dependency>
             <groupId>com.bestseller.bestone.bi4.system.infra.messagefuser</groupId>
             <artifactId>messagefuser-spring-boot-starter</artifactId>
-            <version>3.2.2.111</version>
+            <version>LATEST</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.bestseller.bestone.bi4.system.infra</groupId>
